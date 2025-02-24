@@ -1,0 +1,15 @@
+.Login-Top{
+    background-image: url('../../public/images/loginImg.jpg');
+    color: white;
+    background-size: cover;
+
+}
+.Login-inner{
+    height: 80%;
+}
+.form-control{
+    background-color: transparent !important;
+    outline: none !important;
+    color: white !important;
+
+}

@@ -1,0 +1,26 @@
+.nav-item {
+    border-left: 1px solid crimson;
+    border-right: 1px solid crimson;
+}
+.nav-item a{
+    width: 140px;
+    text-decoration: none !important;
+}
+li{
+    height: 90px;
+}
+  .navbar-nav .nav-item {
+    text-decoration: none ;
+  }
+  .active{
+    background-color: rgb(206, 206, 206);
+  }
+  .active span{
+    color: rgb(224, 9, 9) !important;
+    font-weight: bold;
+  }
+  .active img{
+    background-color:white;
+  }
+
+

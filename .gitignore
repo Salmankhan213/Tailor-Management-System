@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Environment files
+.env
+server/.env
+client/.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build files
+dist/
+build/
+client/build/
+
+# OS and IDE-specific files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dependencies lock files
+package-lock.json
+yarn.lock

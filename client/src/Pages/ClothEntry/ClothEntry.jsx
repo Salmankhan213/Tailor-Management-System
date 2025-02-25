@@ -2,21 +2,16 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../Layout/Layout';
 import * as Yup from 'yup';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
-import { useTranslation } from 'react-i18next';
 import { useAddStitchingCategoryMutation, useDeleteStitchingCategoryMutation, useGetStitchingCategoryQuery,useUpdateStitchingCategoryMutation } from '../../redux/Services/StitchingCategoryApi';
 import { useAddStitchingMeasurementMutation,useDeleteStitchingMeasurementMutation,useGetStitchingMeasurementQuery, useUpdateStitchingMeasurementMutation } from '../../redux/Services/StitchingMeasurementApi';
 import {showErrorAlert, showSuccessAlert} from '../../util/SweetalertHelper'
 import { useAddStitchingDesignMutation, useDeleteStitchingDesignMutation, useGetStitchingDesignQuery, useUpdateStitchingDesignMutation } from '../../redux/Services/StitchingDesign';
-import axios from 'axios';
-
 function ClothEntry() {
-  const { t } = useTranslation();
   // Stitching  global
        const [selectedCategory, setSelectedCategory] = useState(null);
       const [selectedStitchingDetail, setSelectedStitchingDetail] = useState(null);
       const [editMode, setEditMode] = useState(false);
       const [filteredMeasurements, setFilteredMeasurements] = useState([]);
-      console.log(selectedCategory);
     
       const handleClose = () => {
         setSelectedCategory(null);
@@ -99,20 +94,29 @@ function ClothEntry() {
    }
     const handleStitchingCategory = async(values ,resetForm)=>{
        try {
-        await addcatgegory(values).unwrap()
-        resetForm()
-        showSuccessAlert('Added Successfully!')
+        const res = await addcatgegory(values).unwrap()
+        if(res.success){
+          resetForm()
+          showSuccessAlert(res.message)
+        }else{
+          showErrorAlert(res.message)
+        }
        } catch (error) {
         showErrorAlert(error)
        }
         
     }
-    const handleCategoryUpdate = async(id,values ,resetForm)=>{
+    const handleCategoryUpdate = async(id,values)=>{
        try {
-        await updatecategory({id,values}).unwrap()
-        showSuccessAlert('Updated Successfully!')
+       const res =  await updatecategory({id,values}).unwrap()
+
+       if(res.success){
+        showSuccessAlert(res.message)
         setSelectedCategory(null)
         setEditMode(false)
+      }else{
+        showErrorAlert(res.message)
+      }
        } catch (error) {
         showErrorAlert(error)
        }
@@ -122,8 +126,12 @@ function ClothEntry() {
   
     const handleCategoryDelete = async(id)=>{
       try {
-        await deletecategory(id).unwrap()
-        showSuccessAlert('Deleted Successfully!')
+       const res = await deletecategory(id).unwrap()
+        if(res.success){
+          showSuccessAlert(res.message)
+        }else{
+          showErrorAlert(res.message)
+        }
       } catch (error) {
         showErrorAlert(error)
       }
@@ -257,7 +265,7 @@ function ClothEntry() {
       <div className="d-flex gap-2 py-4">
         <button
           type="button"
-          className="btn btn-danger py-2 fw-bold"
+          className="btn btn-danger py-2 fw-bold btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#staticBackdrop"
           onClick={() => handleModal("StitchingCategoryEntry")}
@@ -266,7 +274,7 @@ function ClothEntry() {
         </button>
         <button
           type="button"
-          className="btn btn-success py-2 fw-bold"
+          className="btn btn-success py-2 fw-bold btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#staticBackdrop"
           onClick={() => handleModal("MeasurementDetailsEntry")}
@@ -275,7 +283,7 @@ function ClothEntry() {
         </button>
         <button
           type="button"
-          className="btn btn-primary py-2 px-5 fw-bold"
+          className="btn btn-primary py-2 px-5 fw-bold btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#staticBackdrop"
           onClick={() => handleModal("DesignEntry")}
@@ -298,10 +306,10 @@ function ClothEntry() {
             <div className="modal-header">
               <h5 className="modal-title" id="staticBackdropLabel">
                 {modalContent === "StitchingCategoryEntry" &&
-                  t("stitchingCategoryEntry")}
+                  'Stitching Category Entry'}
                 {modalContent === "MeasurementDetailsEntry" &&
-                  t("measurementDetailsEntry")}
-                {modalContent === "DesignEntry" && t("designEntry")}
+                  'Measurement Detail Entry'}
+                {modalContent === "DesignEntry" && 'Design Entry'}
               </h5>
               <button
                 type="button"
@@ -340,7 +348,7 @@ function ClothEntry() {
                                 htmlFor="TypeStitchingName"
                                 className="form-label"
                               >
-                                {t("typeOfStitchingName")}
+                                Type Stitching
                               </label>
                               <Field
                                 name="TypeStitchingName"
@@ -356,7 +364,7 @@ function ClothEntry() {
                             </div>
                             <div className="col-md-12">
                               <label htmlFor="Image" className="form-label">
-                                {t("image")}
+                                Image
                               </label>
                               <Field
                                 name="Image"
@@ -375,7 +383,7 @@ function ClothEntry() {
                                 htmlFor="SingleStitching"
                                 className="form-label"
                               >
-                                {t("singleStitching")}
+                                Single Stitching
                               </label>
                               <Field
                                 name="SingleStitching"
@@ -394,7 +402,7 @@ function ClothEntry() {
                                 htmlFor="DoubleStitching"
                                 className="form-label"
                               >
-                                {t("doubleStitching")}
+                                Double Stitching
                               </label>
                               <Field
                                 name="DoubleStitching"
@@ -410,7 +418,7 @@ function ClothEntry() {
                             </div>
                             <div className="col-md-12 text-center">
                               <button type="submit" className="btn btn-success">
-                                {t("save")}
+                                Save
                               </button>
                             </div>
                           </Form>
@@ -421,9 +429,9 @@ function ClothEntry() {
                       <table className="table table-striped">
                         <thead>
                           <tr>
-                            <th>{t("sNo")}</th>
-                            <th>{t("stitchingType")}</th>
-                            <th>{t("action")}</th>
+                            <th>S.NO</th>
+                            <th>Stitching Type</th>
+                            <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -438,7 +446,7 @@ function ClothEntry() {
                                       className="btn btn-sm btn-success"
                                       onClick={() => handleEditCategory(item)}
                                     >
-                                      <i class="fa-solid fa-pen"></i>
+                                      <i className="fa-solid fa-pen"></i>
                                     </button>
                                     <button
                                       className="btn btn-sm btn-danger"
@@ -446,7 +454,7 @@ function ClothEntry() {
                                         handleCategoryDelete(item._id)
                                       }
                                     >
-                                      <i class="fa-solid fa-trash"></i>
+                                      <i className="fa-solid fa-trash"></i>
                                     </button>
                                   </td>
                                 </tr>
@@ -492,7 +500,7 @@ function ClothEntry() {
                                   htmlFor="TypeStitchingName"
                                   className="form-label"
                                 >
-                                  {t("typeOfStitchingName")}
+                                  Type Stitching
                                 </label>
                                 <Field
                                   as="select"
@@ -507,7 +515,7 @@ function ClothEntry() {
                                     {selectedCategory
                                       ? selectedCategory.TypeStitchingId
                                           .TypeStitchingName
-                                      : t("selectCategory")}
+                                      : 'Select Category'}
                                   </option>
                                   {StitchingCategory &&
                                     StitchingCategory.FetchCategory?.map(
@@ -532,7 +540,7 @@ function ClothEntry() {
                                   htmlFor="StitchingDetial"
                                   className="form-label"
                                 >
-                                  {t("stitchingDetail")}
+                                  Stitching Detail
                                 </label>
                                 <Field
                                   name="StitchingDetial"
@@ -551,7 +559,7 @@ function ClothEntry() {
                                   type="submit"
                                   className="btn btn-success"
                                 >
-                                  {t("save")}
+                                  Save
                                 </button>
                               </div>
                             </Form>
@@ -564,9 +572,9 @@ function ClothEntry() {
                       <table className="table table-striped">
                         <thead>
                           <tr>
-                            <th>{t("sNo")}</th>
-                            <th>{t("stitchingDetail")}</th>
-                            <th>{t("action")}</th>
+                            <th>S.NO</th>
+                            <th>Stitching Detail</th>
+                            <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -644,7 +652,7 @@ function ClothEntry() {
                                 htmlFor="DesignName"
                                 className="form-label"
                               >
-                                {t("designName")}
+                                Design Name
                               </label>
                               <Field
                                 name="DesignName"
@@ -660,7 +668,7 @@ function ClothEntry() {
                             </div>
                             <div className="col-md-12">
                               <label htmlFor="Image" className="form-label">
-                                {t("image")}
+                               Image
                               </label>
                               <Field
                                 name="Image"
@@ -676,7 +684,7 @@ function ClothEntry() {
                             </div>
                             <div className="col-md-12 text-center">
                               <button type="submit" className="btn btn-success">
-                                {t("save")}
+                                Save
                               </button>
                             </div>
                           </Form>
@@ -687,9 +695,9 @@ function ClothEntry() {
                       <table className="table table-striped">
                         <thead>
                           <tr>
-                            <th>{t("sNo")}</th>
-                            <th>{t("designName")}</th>
-                            <th>{t("action")}</th>
+                            <th>S.No</th>
+                            <th>Design Name</th>
+                            <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -706,7 +714,7 @@ function ClothEntry() {
                                         className="btn btn-sm btn-success"
                                         onClick={() => handleEditCategory(item)}
                                       >
-                                        <i class="fa-solid fa-pen"></i>
+                                        <i className="fa-solid fa-pen"></i>
                                       </button>
                                       <button
                                         className="btn btn-sm btn-danger"
@@ -714,7 +722,7 @@ function ClothEntry() {
                                           handleDesignDelete(item._id)
                                         }
                                       >
-                                        <i class="fa-solid fa-trash"></i>
+                                        <i className="fa-solid fa-trash"></i>
                                       </button>
                                     </td>
                                   </tr>
@@ -734,7 +742,7 @@ function ClothEntry() {
                 data-bs-dismiss="modal"
                 onClick={() => handleClose()}
               >
-                {t("close")}
+                Close
               </button>
             </div>
           </div>

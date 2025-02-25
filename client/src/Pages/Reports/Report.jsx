@@ -15,7 +15,6 @@ function Report() {
   const [typeReports, setTypeReports] = useState('');
   const [reportdata,setReportData] = useState([])
  
-  console.log('reportdata',reportdata)
 
 //  pagination Logic
 
@@ -60,6 +59,7 @@ setCurrentPage(pagenumber)
 
 
   const handleGenerateReport = async (values) => {
+    console.log(values)
     try {
       const response = await axios.get("http://localhost:2000/reports/getall", {
         params: values,
@@ -165,7 +165,7 @@ setCurrentPage(pagenumber)
                 <Field
                   type="date"
                   name="startDate"
-                  className="form-control"
+                  className="form-control text-dark"
                   id="startDate"
                 />
                 <ErrorMessage
@@ -182,7 +182,7 @@ setCurrentPage(pagenumber)
                 <Field
                   type="date"
                   name="endDate"
-                  className="form-control"
+                  className="form-control text-dark"
                   id="endDate"
                 />
                 <ErrorMessage
@@ -203,42 +203,45 @@ setCurrentPage(pagenumber)
 
         <div className="row mt-5">
           {reportdata.length === 0 ? (
-            <h5 className='text-danger text-center'>Data Not Found</h5>
+            <h5 className='text-danger text-center'>no data available in the table</h5>
           ): null}
           {typeReports === "expenses" && reportdata.length > 0 &&  <ReportExpensesTable data={CurrentItems} />}
           {typeReports === "order" && reportdata.length > 0 && <ReportOrderTable data={CurrentItems}/>}
           {typeReports === "worker" && reportdata.length > 0 && <ReportWorkerTable  data={CurrentItems}/>}
         </div>
 
-        <div className="row my-4">
-            <div className="col-md-12 d-flex justify-content-center">
-              <button
-                className="btn  btn-sm btn-danger me-1 fw-bold"
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-              >
-                Prev
-              </button>
-              {Array.from({ length: totalPage }, (_, ind) => (
-                <button
-                  className={`btn btn-sm  mx-2 ${
-                    currentPage === ind + 1 ? "btn-danger" : "btn-primary"
-                  }`}
-                  onClick={()=>handlePage(ind+1)}
-                  key={ind + 1}
-                >
-                  {ind + 1}
-                </button>
-              ))}
-              <button
-                className="btn  btn-sm btn-danger ms-1 fw-bold"
-                onClick={handleNext}
-                disabled={currentPage === totalPage}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+        {reportdata.length > 0? (
+                  <div className="row my-4">
+                  <div className="col-md-12 d-flex justify-content-center">
+                    <button
+                      className="btn  btn-sm btn-danger me-1 fw-bold"
+                      onClick={handlePrev}
+                      disabled={currentPage === 1}
+                    >
+                      Prev
+                    </button>
+                    {Array.from({ length: totalPage }, (_, ind) => (
+                      <button
+                        className={`btn btn-sm  mx-2 ${
+                          currentPage === ind + 1 ? "btn-danger" : "btn-primary"
+                        }`}
+                        onClick={()=>handlePage(ind+1)}
+                        key={ind + 1}
+                      >
+                        {ind + 1}
+                      </button>
+                    ))}
+                    <button
+                      className="btn  btn-sm btn-danger ms-1 fw-bold"
+                      onClick={handleNext}
+                      disabled={currentPage === totalPage}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+        ) :null }
+
       </div>
     </Layout>
   );

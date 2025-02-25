@@ -1,5 +1,4 @@
 import React,{ useEffect, useState} from 'react';
-import { useTranslation } from 'react-i18next';
 import Layout from "../Layout/Layout";
 import { useGetOrderQuery } from '../../redux/Services/OrderApi';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +9,6 @@ import {io} from 'socket.io-client'
 function Home() {
 
 
-  const { t } = useTranslation();
  const {data:Orderdata} =  useGetOrderQuery()
 const navigate = useNavigate()
 const [filterdata,setAFilterdata] = useState(null)
@@ -80,7 +78,7 @@ const handlePage = (Pagenumber)=>{
         <div className="row my-5 d-flex gap-3 gap-md-0">
           <div className="col-md-4 d-flex justify-content-center">
           <button className="btn btn-danger shadow w-md-75 w-100">
-            {t('worker')} <span className="badge bg-light text-dark ms-2">{WorkerData?.FetchWorker?.length}</span>
+            Workers <span className="badge bg-light text-dark ms-2">{WorkerData?.FetchWorker?.length}</span>
           </button>
           </div>
         <div className="col-md-4 d-flex justify-content-center">
@@ -99,7 +97,7 @@ const handlePage = (Pagenumber)=>{
           <div className="col-md-4 text-center">
           <div className="border rounded py-1 text-white w-md-75 w-100 mx-auto bg-success shadow">
             <h5 className="mb-0">{daily? daily.DailyAmount : 0}</h5>
-            <small>{t('dailyOutstanding')}</small>
+            <small>Daily Outstanding</small>
           </div>
         </div>
 
@@ -117,7 +115,7 @@ const handlePage = (Pagenumber)=>{
 
         <div className="col-md-4 d-flex gap-4 mb-3">
             <label htmlFor="Search" className="fw-bold">
-              {t("search")}
+              Search
             </label>
             <input type="text" className="form-control"  onChange={(e)=>handleSearch(e.target.value)}/>
             <select name="rowpage" className='form-control w-25 bg-dark text-white' id="rowpage" onChange={(e)=>setRowPerPage( parseInt(e.target.value)) }>
@@ -132,7 +130,7 @@ const handlePage = (Pagenumber)=>{
           <table className="table table-bordered text-center">
             <thead>
               <tr>
-                <th>{t('serialNo')}</th>
+                <th>S.NO</th>
                 <th>Customer Name</th>
                 <th>Type Stitching</th>
                 <th>Stitching</th>

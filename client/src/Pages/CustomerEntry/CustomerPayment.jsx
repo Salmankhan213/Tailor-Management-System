@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Layout from "../Layout/Layout";
 import { useGetCustomerQuery } from "../../redux/Services/AddCustomerApi";
 import { Formik, Field, Form, ErrorMessage } from "formik";
-import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import {
   useAddCustomerPaymentMutation,
@@ -15,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 
 function CustomerPayment() {
   const { id} = useParams();
-  const { t } = useTranslation();
   const navigate = useNavigate()
 
 
@@ -94,16 +92,17 @@ const validationSchema = yup.object().shape({
       <div className="d-flex gap-3 py-4">
         <button
           type="button"
-          className="btn btn-danger py-3 ms-4 fw-bold"
+          className="btn btn-danger  ms-4 fw-bold btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#staticBackdrop"
           onClick={() => handleModal("CustomerPayment")}
         >
           Customer Payment
         </button>
-        <Link to={`/customerentry/customerledger/${id}`} 
+        <Link
+          to={`/customerentry/customerledger/${id}`}
           type="button"
-          className="btn btn-primary py-3 me-4 fw-bold"
+          className="btn btn-primary  me-4 fw-bold btn-sm"
         >
           Customer Ledger
         </Link>
@@ -249,7 +248,7 @@ const validationSchema = yup.object().shape({
                                   type="submit"
                                   className="btn btn-success"
                                 >
-                                  {t("save")}
+                                  Save
                                 </button>
                               </div>
                             </Form>
@@ -268,7 +267,7 @@ const validationSchema = yup.object().shape({
                 data-bs-dismiss="modal"
                 onClick={() => handleClose()}
               >
-                {t("close")}
+                Close
               </button>
             </div>
           </div>
@@ -282,7 +281,7 @@ const validationSchema = yup.object().shape({
             <table className="table table-striped">
               <thead>
                 <tr>
-                  <th>{t("sNo")}</th>
+                  <th>S.NO</th>
                   <th>Customer Name</th>
                   <th>Date</th>
                   <th>Receipt Amount</th>
@@ -290,13 +289,19 @@ const validationSchema = yup.object().shape({
                 </tr>
               </thead>
               <tbody>
-                {CustomerPaymentData &&
-                  CustomerPaymentData.FetchPayment?.slice()
+                {CustomerPaymentData?.FetchPayment.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>
+                    <h6 className="text-center text-danger">No data available in the table</h6>
+                    </td>
+                  </tr>
+                ) : (
+                  CustomerPaymentData?.FetchPayment?.slice()
                     .reverse()
-                    .map((payment,i) => {
+                    .map((payment, i) => {
                       return (
                         <tr key={payment._id}>
-                          <td>{i+1}</td>
+                          <td>{i + 1}</td>
                           <td>{payment.CustomerName}</td>
                           <td>{payment.Date}</td>
                           <td>{payment.ReceiptAmount}</td>
@@ -310,14 +315,15 @@ const validationSchema = yup.object().shape({
                             </button>
                             <button
                               className="btn btn-success btn-sm "
-                              onClick={() =>handlePrint(payment)}
+                              onClick={() => handlePrint(payment)}
                             >
-                             <i className="fa-solid fa-print"></i>
+                              <i className="fa-solid fa-print"></i>
                             </button>
                           </td>
                         </tr>
                       );
-                    })}
+                    })
+                )}
               </tbody>
             </table>
           </div>

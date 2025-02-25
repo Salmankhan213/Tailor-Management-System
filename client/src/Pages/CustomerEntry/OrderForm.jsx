@@ -1,207 +1,236 @@
-import React, { useEffect, useState,useRef,useCallback} from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { useTranslation } from 'react-i18next';
-import axios from 'axios'
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import Select from 'react-select';
 import { useGetStitchingDesignQuery } from '../../redux/Services/StitchingDesign';
-import { useGetStitchingCategoryQuery} from '../../redux/Services/StitchingCategoryApi';
+import { useGetStitchingCategoryQuery } from '../../redux/Services/StitchingCategoryApi';
 import { useAddOrderMutation } from '../../redux/Services/OrderApi';
-import {showErrorAlert,showSuccessAlert} from '../../util/SweetalertHelper'
+import { showErrorAlert, showSuccessAlert } from '../../util/SweetalertHelper';
 import { useGetCustomerQuery } from '../../redux/Services/AddCustomerApi';
-import Layout from '../Layout/Layout'
+import Layout from '../Layout/Layout';
+
+const validationSchema = Yup.object().shape({
+  orderDate: Yup.string().required('Order date is required'),
+  deliveryDate: Yup.string().required('Delivery date is required'),
+  designCode: Yup.string().required('Design code is required'),
+  typeStitching: Yup.string().required('Stitching type is required'),
+  stitching: Yup.string().required('Stitching is required'),
+  stitchingPrice: Yup.number().required('Stitching price is required').min(1, 'Price must be greater than 0'),
+  quantity: Yup.number().required('Quantity is required').min(1, 'Quantity must be at least 1'),
+  AdvancePrice: Yup.number().required('Advance price is required').min(0, 'Advance price cannot be negative'),
+});
 
 const OrderForm = () => {
-
-  const {id,ind} = useParams()
-  const {data:Designdata} = useGetStitchingDesignQuery()
-  const {data:StitchingTypeData} = useGetStitchingCategoryQuery()
+  const { id, ind } = useParams();
+  const { data: Designdata } = useGetStitchingDesignQuery();
+  const { data: StitchingTypeData } = useGetStitchingCategoryQuery();
   const selectedItemsRef = useRef([]);
-  const [selectedStitcing, setSelectedStitcing] = useState(null);
-  const [totalItems,setTotalitems] = useState([])
-  const [customerDeial,setCustomerDetial] = useState(null)
-  const [totalPrice,setTotalPrice] = useState(0)
- const [AddOrderData] =  useAddOrderMutation()
- const {refetch: refetchCustomer} = useGetCustomerQuery()
- 
- 
-  const { t,i18n } = useTranslation();
+  const [selectedStitching, setSelectedStitching] = useState(null);
+  const [totalItems, setTotalItems] = useState([]);
+  const [customerDetail, setCustomerDetail] = useState(null);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [AddOrderData] = useAddOrderMutation();
+  const { refetch: refetchCustomer } = useGetCustomerQuery();
 
+  // Fetch customer details
   useEffect(() => {
-    const getAllcustomer = async () => {
-      const res = await axios.get(
-        "http://localhost:2000/customer/getall"
-      );
+    const getAllCustomer = async () => {
+      const res = await axios.get("http://localhost:2000/customer/getall");
       const data = await res.data.FetchCustomer;
-      const { CustomerName, PhoneNo } = data.find(
-        (item) => item._id == id
-      );
-      setCustomerDetial({CustomerName,PhoneNo})
+      const { CustomerName, PhoneNo } = data.find((item) => item._id === id);
+      setCustomerDetail({ CustomerName, PhoneNo });
     };
-    getAllcustomer();
+    getAllCustomer();
   }, [id]);
 
-  const handleTypeStitchingChange = useCallback((e, setFieldValue) => {
-    const value = e.target.value;
+  // Handle stitching type change
+  const handleTypeStitchingChange = useCallback((selectedOption, setFieldValue,values) => {
+    const value = selectedOption.value;
     const foundCategory = StitchingTypeData?.FetchCategory?.find(
       (item) => item.TypeStitchingName.trim().toLowerCase() === value.trim().toLowerCase()
     );
-    
     if (foundCategory) {
-      setSelectedStitcing(foundCategory);
+      setSelectedStitching(foundCategory);
+     if(values.stitching === 'DoubleStitching'){
+       const findPrice = foundCategory.DoubleStitching
+       setFieldValue('stitchingPrice',findPrice)
+     }
+     if(values.stitching === 'SingleStitching'){
+      const findPrice = foundCategory.SingleStitching
+      setFieldValue('stitchingPrice',findPrice)
+     }
     }
-  
+
     setFieldValue('typeStitching', value);
     setFieldValue('quantity', value !== '' ? 1 : 0);
   }, [StitchingTypeData]);
 
-  const handleStitchingChange = useCallback((e, setFieldValue) => {
-    const value = e.target.value;
-    
+  // Handle stitching change
+  const handleStitchingChange = useCallback((selectedOption, setFieldValue) => {
+    const value = selectedOption.value;
+
     if (value === 'SingleStitching') {
-      setFieldValue('stitchingPrice', selectedStitcing?.SingleStitching || 0);
+      setFieldValue('stitchingPrice', selectedStitching?.SingleStitching || 0);
     } else if (value === 'DoubleStitching') {
-      setFieldValue('stitchingPrice', selectedStitcing?.DoubleStitching || 0);
+      setFieldValue('stitchingPrice', selectedStitching?.DoubleStitching || 0);
     }
-    
+
     setFieldValue('stitching', value);
-  }, [selectedStitcing]);
+  }, [selectedStitching]);
 
-  useEffect(()=>{
-    document.documentElement.dir = i18n.language === "ur" ? 'rtl':"ltr"
-  },[i18n.language])
+  // Handle checkbox change for details
+  const handleCheckboxChange = useCallback((e, setFieldValue) => {
+    const { value, checked } = e.target;
+    let updatedSelectedItems = selectedItemsRef.current;
 
-  const items = [
-    { id: 'item2', label: t('goldButton') },
-    { id: 'item3', label: t('roundButton') },
-    { id: 'item4', label: t('frontPocket') },
-    { id: 'item5', label: t('sidePocket') },
-    ];
-  const handleCheckboxChange = useCallback(
-    (e, setFieldValue) => {
-      const { value, checked } = e.target;
-      let updatedSelectedItems = selectedItemsRef.current;
+    if (checked) {
+      updatedSelectedItems = [...updatedSelectedItems, value];
+    } else {
+      updatedSelectedItems = updatedSelectedItems.filter((item) => item !== value);
+    }
 
-      if (checked) {
-        updatedSelectedItems = [...updatedSelectedItems, value];
-      } else {
-        updatedSelectedItems = updatedSelectedItems.filter((item) => item !== value);
-      }
+    selectedItemsRef.current = updatedSelectedItems;
+    setFieldValue('details', updatedSelectedItems.join(', '));
+  }, []);
 
-      selectedItemsRef.current = updatedSelectedItems;
-      setFieldValue('details', updatedSelectedItems.join(', '));
-    },
-    []
-  );
-
-
-const calculateTotalPriceOrder = (updatedItems) => {
+  // Calculate total price
+  const calculateTotalPriceOrder = (updatedItems, values, setFieldValue) => {
     const total = updatedItems.reduce((sum, item) => sum + item.TotalPriceOrder, 0);
-    setTotalPrice(total)
-}
-const handleAdvance = (e,setFieldValue,totalPrice)=>{
-   const value = e.target.value
-   setFieldValue('AdvancePrice',value)
-
-   const NewRemaining = totalPrice - value
-   setFieldValue('RemainingPrice',NewRemaining)
-}
-const HandleAddItems = (values,setFieldValue,)=>{
-  const totalprice = values.stitchingPrice * values.quantity
-  const newItem = {
-    typeStitching: values.typeStitching,
-    stitching: values.stitching,
-    designCode: values.designCode,
-    stitchingPrice: values.stitchingPrice,
-    quantity: values.quantity,
-    TotalPriceOrder: totalprice,
-    details:values.details,
-    orderDate: values.orderDate, 
-    deliveryDate: values.deliveryDate, 
+    setTotalPrice(total);
+    setFieldValue('TotalPriceOrder', total);
+    const RemainingPrice = total - values.AdvancePrice;
+    setFieldValue('RemainingPrice', RemainingPrice);
   };
-  if(values.typeStitching && values.designCode && values.stitchingPrice
-    && values.quantity && values.details && values.orderDate && values.deliveryDate
-  ){
-    const updatedItems = [...totalItems, newItem];
-    setTotalitems(updatedItems);
-    calculateTotalPriceOrder(updatedItems);
-  }
-}
 
-const handleDeleteItem = (index)=>{
-  const filtered = totalItems.filter((_,i)=> i !== index)
-  setTotalitems(filtered)
-}
-const HandleSubmit = async (values, resetForm) => {
-  try {
-    const orderData = {
-      CustomerId: id,
-      totalItems: totalItems,
+  // Handle advance price change
+  const handleAdvance = (e, setFieldValue, totalPrice) => {
+    const value = Number(e.target.value);
+    setFieldValue('AdvancePrice', value);
+    const newRemaining = totalPrice - value;
+    setFieldValue('RemainingPrice', newRemaining);
+  };
+
+  // Add items to the order
+  const handleAddItems = (values, setFieldValue) => {
+    const totalPrice = values.stitchingPrice * values.quantity;
+
+    const newItem = {
+      typeStitching: values.typeStitching,
+      stitching: values.stitching,
+      designCode: values.designCode,
+      stitchingPrice: values.stitchingPrice,
+      quantity: values.quantity,
       TotalPriceOrder: totalPrice,
-      advancePrice: values.AdvancePrice,
-      remainingPrice: values.RemainingPrice,
+      details: values.details,
+      orderDate: values.orderDate,
+      deliveryDate: values.deliveryDate,
     };
 
-    const res = await AddOrderData(orderData).unwrap();
-
-    if (res.success) {
-      showSuccessAlert('Order Added!');
-      setTotalitems([]);
-      setTotalPrice(0);
-      resetForm();
-      refetchCustomer();
-    } 
-    else {
-      showErrorAlert(res.message);
-      res.missingMeasurements.forEach(element => {
-        showErrorAlert(element);
-      });
+    if (
+      values.typeStitching &&
+      values.designCode &&
+      values.stitchingPrice &&
+      values.quantity &&
+      values.details &&
+      values.orderDate &&
+      values.deliveryDate
+    ) {
+      const updatedItems = [...totalItems, newItem];
+      setTotalItems(updatedItems);
+      calculateTotalPriceOrder(updatedItems, values, setFieldValue);
     }
-  } catch (error) {
-    const errorMessage = 'An unknown error occurred';
-    showErrorAlert(errorMessage);
+  };
 
-    if (error.data?.missingMeasurements) {
-      error.data.missingMeasurements.forEach(element => {
-        showErrorAlert(element);
-      });
+  // Delete item from the order
+  const handleDeleteItem = (index, values, setFieldValue) => {
+    const filtered = totalItems.filter((_, i) => i !== index);
+    setTotalItems(filtered);
+    calculateTotalPriceOrder(filtered, values, setFieldValue);
+  };
+
+  // Handle form submission
+  const handleSubmit = async (values) => {
+    try {
+      const orderData = {
+        CustomerId: id,
+        totalItems: totalItems,
+        TotalPriceOrder: totalPrice,
+        advancePrice: values.AdvancePrice,
+        remainingPrice: values.RemainingPrice,
+      };
+
+      const res = await AddOrderData(orderData).unwrap();
+
+      if (res.success) {
+        showSuccessAlert(res.message);
+        setTotalItems([]);
+        setTotalPrice(0);
+        resetForm();
+        refetchCustomer();
+      } else{
+        showErrorAlert(res.message);
+        res.missingMeasurements.forEach((element) => {
+          showErrorAlert(element);
+        });
+      }
+    } catch (error) {
+      showErrorAlert(error);
+
+      if (error.data?.missingMeasurements) {
+        error.data.missingMeasurements.forEach((element) => {
+          showErrorAlert(element);
+        });
+      }
     }
-  }
-};
+  };
+
+  // Options for react-select
+  const designOptions = Designdata?.FetchDesign?.map((design) => ({
+    value: design.DesignName,
+    label: design.DesignName,
+  })) || [];
+
+  const stitchingTypeOptions = StitchingTypeData?.FetchCategory?.map((type) => ({
+    value: type.TypeStitchingName,
+    label: type.TypeStitchingName,
+  })) || [];
+
+  const stitchingOptions = [
+    { value: 'SingleStitching', label: 'Single Stitching' },
+    { value: 'DoubleStitching', label: 'Double Stitching' },
+  ];
 
   return (
     <Layout>
-    <div
-      className="container mt-4"
-      dir={i18n.language === "ur" ? "rtl" : "ltr"}
-    >
-      <h3 className="text-center mb-4">{t("orderEntry")}</h3>{" "}
-      {/* Translate the title */}
-      <Formik
-        initialValues={{
-          orderDate: new Date().toISOString().slice(0, 10),
-          deliveryDate: "",
-          designCode: "",
-          typeStitching: "",
-          stitching: "",
-          stitchingPrice: 0,
-          quantity: 0,
-          details: selectedItemsRef.current.join(", "),
-          TotalPriceOrder: 0,
-          AdvancePrice: 0,
-          RemainingPrice: 0,
-        }}
-        enableReinitialize
-        validationSchema={null}
-        onSubmit={(values,{resetForm}) => HandleSubmit(values,resetForm)}
-      >
-        {({ values, setFieldValue }) => {
-          return (
+      <div className="container mt-4">
+        <h3 className="text-center mb-4">Order Entry</h3>
+        <Formik
+          initialValues={{
+            orderDate: new Date().toISOString().slice(0, 10),
+            deliveryDate: "",
+            designCode: "",
+            typeStitching: "",
+            stitching: "",
+            stitchingPrice: 0,
+            quantity: 0,
+            details: selectedItemsRef.current.join(", "),
+            TotalPriceOrder: 0,
+            AdvancePrice: 0,
+            RemainingPrice: 0,
+          }}
+          enableReinitialize
+          validationSchema={validationSchema}
+          onSubmit={(values=> console.log(values))}
+        >
+          {({ values, setFieldValue }) => (
             <Form>
+              {/* Form fields */}
               <div className="row">
                 <div className="col-md-4 col-lg-1">
                   <div className="form-group mb-3">
-                    <label>0rder_No</label>
+                    <label>Order_No</label>
                     <Field
                       name="orderNumber"
                       type="number"
@@ -218,7 +247,7 @@ const HandleSubmit = async (values, resetForm) => {
                     <Field
                       name="clientName"
                       type="text"
-                      value={customerDeial?.CustomerName}
+                      value={customerDetail?.CustomerName || ""}
                       className="form-control"
                       disabled
                     />
@@ -227,11 +256,11 @@ const HandleSubmit = async (values, resetForm) => {
 
                 <div className="col-md-4">
                   <div className="form-group mb-3">
-                    <label>{t("mobileNumber")}</label>
+                    <label>Phone No</label>
                     <Field
                       name="mobileNumber"
                       type="number"
-                      value={customerDeial?.PhoneNo}
+                      value={customerDetail?.PhoneNo}
                       className="form-control"
                       disabled
                     />
@@ -240,137 +269,157 @@ const HandleSubmit = async (values, resetForm) => {
 
                 <div className="col-md-6 col-lg-2">
                   <div className="form-group mb-3">
-                    <label>{t("orderDate")}</label>
+                    <label>Order Date</label>
                     <Field
                       name="orderDate"
                       type="date"
                       className="form-control"
+                    />
+                    <ErrorMessage
+                      name="orderDate"
+                      component="div"
+                      className="text-danger"
                     />
                   </div>
                 </div>
 
                 <div className="col-md-6 col-lg-2">
                   <div className="form-group mb-3">
-                    <label>{t("deliveryDate")}</label>
+                    <label>Delivery Date</label>
                     <Field
                       name="deliveryDate"
                       type="date"
                       className="form-control"
                     />
+                    <ErrorMessage
+                      name="deliveryDate"
+                      component="div"
+                      className="text-danger"
+                    />
                   </div>
                 </div>
               </div>
 
+              {/* Design Code */}
               <div className="row">
                 <div className="col-md-4 col-lg-2">
                   <div className="form-group mb-3">
-                    <label>{t("designCode")}</label>
-                    <Field
+                    <label>Design Code</label>
+                    <Select
                       name="designCode"
-                      as="select"
-                      className="form-control"
-                    >
-                      <option value="">{t("selectDesign")}</option>
-                      {Designdata &&
-                        Designdata?.FetchDesign?.map((design, i) => (
-                          <option value={design.DesignName} key={i}>
-                            {design.DesignName}
-                          </option>
-                        ))}
-                    </Field>
+                      options={designOptions}
+                      onChange={(selectedOption) => setFieldValue('designCode', selectedOption.value)}
+                      className="basic-single"
+                      classNamePrefix="select"
+                    />
+                    <ErrorMessage
+                      name="designCode"
+                      component="div"
+                      className="text-danger"
+                    />
                   </div>
                 </div>
 
+                {/* Type Stitching */}
                 <div className="col-md-4 col-lg-2">
                   <div className="form-group mb-3">
-                    <label>{t("typeStitching")}</label>
-                    <Field
+                    <label>Type Stitching</label>
+                    <Select
                       name="typeStitching"
-                      as="select"
-                      className="form-control"
-                      onChange={(e) =>
-                        handleTypeStitchingChange(e, setFieldValue)
-                      }
-                    >
-                      <option value="">{t("selectTypeStitching")}</option>
-                      {StitchingTypeData &&
-                        StitchingTypeData?.FetchCategory?.map((type, i) => (
-                          <option value={type.TypeStitchingName} key={i}>
-                            {type.TypeStitchingName}{" "}
-                          </option>
-                        ))}
-                    </Field>
+                      options={stitchingTypeOptions}
+                      onChange={(selectedOption) => handleTypeStitchingChange(selectedOption, setFieldValue,values)}
+                      className="basic-single"
+                      classNamePrefix="select"
+                    />
+                    <ErrorMessage
+                      name="typeStitching"
+                      component="div"
+                      className="text-danger"
+                    />
                   </div>
                 </div>
 
+                {/* Stitching */}
                 <div className="col-md-4 col-lg-2">
                   <div className="form-group mb-3">
-                    <label>{t("stitching")}</label>
-                    <Field
+                    <label>Stitching</label>
+                    <Select
                       name="stitching"
-                      as="select"
-                      className="form-control"
-                      onChange={(e) =>
-                        handleStitchingChange(e, setFieldValue)
-                      }
-                    >
-                      (
-                      <>
-                        <option value="">{t("selectStitching")}</option>
-                        <option value={"SingleStitching"}>
-                          {t("singleStitching")}
-                        </option>
-                        <option value={"DoubleStitching"}>
-                          {t("doubleStitching")}
-                        </option>
-                      </>
-                      )
-                    </Field>
+                      options={stitchingOptions}
+                      onChange={(selectedOption) => handleStitchingChange(selectedOption, setFieldValue)}
+                      className="basic-single"
+                      classNamePrefix="select"
+                    />
+                    <ErrorMessage
+                      name="stitching"
+                      component="div"
+                      className="text-danger"
+                    />
                   </div>
                 </div>
 
+                {/* Stitching Price */}
                 <div className="col-md-4 col-lg-2">
                   <div className="form-group mb-3">
-                    <label>{t("stitchingPrice")}</label>
+                    <label>Stitching Price</label>
                     <Field
                       name="stitchingPrice"
                       type="number"
                       className="form-control"
                       disabled
                     />
+                    <ErrorMessage
+                      name="stitchingPrice"
+                      component="div"
+                      className="text-danger"
+                    />
                   </div>
                 </div>
 
+                {/* Quantity */}
                 <div className="col-md-4 col-lg-1">
                   <div className="form-group mb-3">
-                    <label>{t("quantity")}</label>
+                    <label>Quantity</label>
                     <Field
                       name="quantity"
                       type="number"
                       className="form-control"
                     />
+                    <ErrorMessage
+                      name="quantity"
+                      component="div"
+                      className="text-danger"
+                    />
                   </div>
                 </div>
               </div>
 
+              {/* Details and Checkboxes */}
               <div className="row">
                 <div className="col-md-6">
                   <div className="form-group mb-3">
-                    <label>{t("details")}</label>
+                    <label>Details</label>
                     <Field
                       name="details"
                       as="textarea"
                       className="form-control"
                       readOnly
                     />
+                    <ErrorMessage
+                      name="details"
+                      component="div"
+                      className="text-danger"
+                    />
                   </div>
                 </div>
 
-                <div
-                  className="col-md-5 mx-4 p-4"
-                  style={{ backgroundColor: "#efefef" }}
-                >
-                  {items.map((item) => (
+                <div className="col-md-5 mx-4 p-4" style={{ backgroundColor: "#efefef" }}>
+                  {[
+                    { id: 'item2', label: 'Gold Button' },
+                    { id: 'item3', label: 'Round Button' },
+                    { id: 'item4', label: 'Front Pocket' },
+                    { id: 'item5', label: 'Side Pocket' },
+                  ].map((item) => (
                     <div className="form-check my-2" key={item.id}>
                       <input
                         className="form-check-input"
@@ -388,14 +437,16 @@ const HandleSubmit = async (values, resetForm) => {
                 </div>
               </div>
 
+              {/* Add Item Button */}
               <button
                 type="button"
                 className="btn btn-success mx-4"
-                onClick={() => HandleAddItems(values,setFieldValue)}
+                onClick={() => handleAddItems(values, setFieldValue)}
               >
-                {t("addItem")}
+                Add Item
               </button>
 
+              {/* Total Price, Advance Price, Remaining Price */}
               <div className="row mt-4">
                 <div className="col-md-12 col-lg-6">
                   <div className="col-md-6 col-lg-6">
@@ -409,16 +460,16 @@ const HandleSubmit = async (values, resetForm) => {
                     />
                   </div>
                   <div className="col-md-6 col-lg-6">
-                    <label htmlFor="AdvancePrice">Advance Price </label>
+                    <label htmlFor="AdvancePrice">Advance Price</label>
                     <Field
                       className="form-control"
                       name="AdvancePrice"
                       type="number"
-                      onChange = {(e)=>handleAdvance(e,setFieldValue,totalPrice)}
+                      onChange={(e) => handleAdvance(e, setFieldValue, totalPrice)}
                     />
                   </div>
                   <div className="col-md-6 col-lg-6">
-                    <label htmlFor="RemainingPrice">Remaining Price </label>
+                    <label htmlFor="RemainingPrice">Remaining Price</label>
                     <Field
                       className="form-control"
                       name="RemainingPrice"
@@ -428,7 +479,8 @@ const HandleSubmit = async (values, resetForm) => {
                   </div>
                 </div>
 
-                <div className=" col-md-12 col-lg-6">
+                {/* Order Items Table */}
+                <div className="col-md-12 col-lg-6">
                   <table className="table table-striped">
                     <thead>
                       <tr>
@@ -442,27 +494,28 @@ const HandleSubmit = async (values, resetForm) => {
                     </thead>
                     <tbody>
                       {totalItems.length > 0 ? (
-                        totalItems?.map((item, i) => {
-                          return (
-                            <tr key={i}>
-                              <td>{item.typeStitching}</td>
-                              <td>{item.designCode}</td>
-                              <td>{item.stitchingPrice}</td>
-                              <td>{item.quantity}</td>
-                              <td>{item.TotalPriceOrder}</td>
-                              <td>
-                                <button className="btn btn-sm btn-danger" onClick={()=> handleDeleteItem(i)}>
-                                  <i class="fa-solid fa-trash"></i>
-                                </button>
-                              </td>
-                              {/* <td>{item.stitchingPrice}</td> */}
-                            </tr>
-                          );
-                        })
+                        totalItems.map((item, i) => (
+                          <tr key={i}>
+                            <td>{item.typeStitching}</td>
+                            <td>{item.designCode}</td>
+                            <td>{item.stitchingPrice}</td>
+                            <td>{item.quantity}</td>
+                            <td>{item.TotalPriceOrder}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-danger"
+                                onClick={() => handleDeleteItem(i, values, setFieldValue)}
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))
                       ) : (
                         <tr>
                           <td colSpan={6}>
-                            <h6 className='text-danger text-center'> No Data Found</h6>
+                            <h6 className="text-danger text-center">No Data available in the table</h6>
                           </td>
                         </tr>
                       )}
@@ -470,15 +523,17 @@ const HandleSubmit = async (values, resetForm) => {
                   </table>
                 </div>
               </div>
-              <div className='d-flex justify-content-center my-4'>
-                <button className='btn btn-danger px-5' type='submit' >Save</button>
-                </div>
+
+              {/* Submit Button */}
+              <div className="d-flex justify-content-center my-4">
+                <button className="btn btn-danger px-5" type="submit" onClick={()=>handleSubmit(values)}>  
+                  Save
+                </button>
+              </div>
             </Form>
-          );
-        }}
-      </Formik>
- 
-    </div>
+          )}
+        </Formik>
+      </div>
     </Layout>
   );
 };

@@ -1,12 +1,10 @@
 import React,{useState,useEffect} from "react";
-import { useTranslation } from "react-i18next";
 import { useOrderProgressMutation } from "../../redux/Services/OrderApi";
 import Layout from "../Layout/Layout";
 import { useDeleteOrderMutation } from "../../redux/Services/OrderApi";
 import {showErrorAlert, showSuccessAlert} from '../../util/SweetalertHelper'
 import {useGetCustomerQuery} from '../../redux/Services/AddCustomerApi'
 function OrderProgress() {
-    const { t ,i18n} = useTranslation();
  const [AddOrderProgress] = useOrderProgressMutation()
  const [DeleteOrderData] = useDeleteOrderMutation()
  const {refetch:refetchCustomer} = useGetCustomerQuery()
@@ -14,9 +12,6 @@ function OrderProgress() {
 
 
 
-useEffect(() => {
-    document.documentElement.dir = i18n.language === 'ur' ? 'rtl' : 'ltr';
-  }, [i18n.language]);
 
 
   const handleCustomerOrder = async ()=>{
@@ -50,7 +45,7 @@ useEffect(() => {
   return (
 
   <Layout>
-      <div className="container" dir ={i18n.language === 'ur' ? 'rtl' : 'ltr'}>
+      <div className="container" >
       <div className="row my-3">
         <div className="col-md-3 offset-5">
           <button className="btn btn-danger" onClick={handleCustomerOrder} >See Order</button>

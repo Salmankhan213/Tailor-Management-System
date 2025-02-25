@@ -16,7 +16,6 @@ const Appsetting = () => {
     },[shopData])
 
 
-    console.log(shopId)
 
     const initialValues = {
         shopName: '',

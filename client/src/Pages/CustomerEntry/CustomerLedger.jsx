@@ -1,20 +1,19 @@
 import React,{useState,useEffect} from "react";
 import { useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { useGetCustomerLedgerMutation } from "../../redux/Services/CustomerPaymentApi";
 import { showErrorAlert, showSuccessAlert } from "../../util/SweetalertHelper";
+import { useNavigate } from "react-router-dom";
 
 function CustomerLedger(){
+
+  const navigate = useNavigate()
 const {id} = useParams()
-const { t ,i18n} = useTranslation();
 const [ledger,setLedger] = useState([])
 const [startDate,setStartDate] = useState('')
 const [endDate,setEndDate] = useState('')
 const [SeeLedgerData] = useGetCustomerLedgerMutation()
 
-useEffect(() => {
-  document.documentElement.dir = i18n.language === 'ur' ? 'rtl' : 'ltr';
-}, [i18n.language]);
+
  
 const handleCustomerLedger = async()=>{
   try {
@@ -27,6 +26,7 @@ const handleCustomerLedger = async()=>{
     const res = await SeeLedgerData(data).unwrap()
     if(res.success){
       setLedger(res.FetchLedger)
+      showSuccessAlert(res.message)
     }
     if(!res.success){
       showErrorAlert(res.message)
@@ -58,7 +58,7 @@ const { ledgerWithBalance, totalCredit, totalDebit, balance } = calculateTotalsA
 
   return (
     <>
-      <div className="container" dir ={i18n.language === 'ur' ? 'rtl' : 'ltr'}>
+      <div className="container" >
       <div className="row my-3">
         <div className="col-md-12 d-flex gap-3">
           <input
@@ -67,7 +67,8 @@ const { ledgerWithBalance, totalCredit, totalDebit, balance } = calculateTotalsA
             onChange={(e) => setStartDate(e.target.value)}
           />
           <input type="date" onChange={(e) => setEndDate(e.target.value)} />
-          <button className="btn btn-danger" onClick={handleCustomerLedger} >See Ledger</button>
+          <button className="btn btn-success  btn-sm" onClick={handleCustomerLedger} >See Ledger</button>
+          <button className="btn btn-danger btn-sm" onClick={()=>navigate(`/customerentry/payment/${id}`)} >Back</button>
         </div>
       </div>
         <div className="row mt-5">
@@ -86,7 +87,7 @@ const { ledgerWithBalance, totalCredit, totalDebit, balance } = calculateTotalsA
            {ledger.length === 0? (
             <tr>
               <td colSpan={5}>
-              <h5 className="text-danger text-center">No data Found</h5>
+              <h6 className="text-danger text-center">No data available in the table</h6>
               </td>
             </tr>
            ):(

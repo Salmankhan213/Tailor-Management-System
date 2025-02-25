@@ -11,6 +11,7 @@ import {CustomerMeasurement} from '../Model/CustomerMeasurementModel.js'
 export const AddOrder_Items = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
+
   try {
     const { CustomerId, totalItems, TotalPriceOrder, advancePrice, remainingPrice } = req.body;
     
@@ -227,7 +228,7 @@ export const ReadyOrder_item = async (req, res, next) => {
 
     const info = await transporter.sendMail({
       from: '"NPS Tailor 👻" <abcdf123@gmail.com>',
-      to: "mpsalman05@gmail.com", 
+      to:"mpsalman05@gmail.com", 
       subject: "Hello ✔",
       text: `${Name} Your Order is Ready`,
       html: "<b>`Hello I am Malak Salman Mp This Mail For You.Your Order is Ready`</b>",

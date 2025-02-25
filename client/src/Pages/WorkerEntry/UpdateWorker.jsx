@@ -2,28 +2,25 @@ import React, { useEffect } from 'react'
 import Layout from '../Layout/Layout'
 import * as Yup  from 'yup'
 import { Formik, Field, Form, ErrorMessage,} from "formik";
-import { useTranslation } from 'react-i18next';
 import {useGetWorkerQuery, useUpdateWorkerMutation} from '../../redux/Services/AddWorkerApi'
 import { useNavigate, useParams } from 'react-router-dom';
 import { showErrorAlert, showSuccessAlert } from '../../util/SweetalertHelper';
 
 function UpdateWorker() {
-  const navigate = useNavigate()
+const navigate = useNavigate()
 const {data:Workerdata} = useGetWorkerQuery()
 const [WorkerUpdating] = useUpdateWorkerMutation()
 
 const {id} = useParams()
-const {t} = useTranslation()
 const WorkerSchema = Yup.object({
-        WorkerName: Yup.string().required('Worker Name Required'),
-        PhoneNo: Yup.string().required(t('phoneNoRequired')),
-        CnicNo: Yup.string().required(t('cnicNoRequired')),
-        Address: Yup.string().required(t('addressRequired')),
+        WorkerName: Yup.string().required('Worker Name is Required'),
+        PhoneNo: Yup.string().required('Phone No is required'),
+        CnicNo: Yup.string().required('CNIC is required'),
+        Address: Yup.string().required('Address is required'),
       });
 
 const GetWokerData = (setValues)=>{
         const findWorker =  Workerdata?.FetchWorker?.find((worker,i) => worker._id == id )
-        console.log('findWorker',findWorker)
         setValues(findWorker)
 }
 
@@ -60,7 +57,7 @@ if(!res.success){
                 {({setValues}) =>{
                     useEffect(()=>{
                         GetWokerData(setValues)
-                    },[])
+                    },[id,Workerdata])
                     return (
                         <Form className="row g-3">
                         <div className="col-md-6">
@@ -84,7 +81,7 @@ if(!res.success){
                         </div>
                         <div className="col-md-6">
                           <label htmlFor="PhoneNo" className="form-label fw-bold">
-                            {t("phoneNo")}
+                          Phone No
                           </label>
                           <Field
                             name="PhoneNo"
@@ -100,7 +97,7 @@ if(!res.success){
                         </div>
                         <div className="col-md-6">
                           <label htmlFor="CnicNo" className="form-label fw-bold">
-                            {t("cnic")}
+                            CNIC
                           </label>
                           <Field
                             name="CnicNo"
@@ -116,7 +113,7 @@ if(!res.success){
                         </div>
                         <div className="col-md-6">
                           <label htmlFor="Address" className="form-label fw-bold">
-                            {t("address")}
+                            Address
                           </label>
                           <Field
                             name="Address"

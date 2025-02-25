@@ -1,30 +1,26 @@
 import React, { useState } from 'react';
 import * as Yup from 'yup';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
-import { useTranslation } from 'react-i18next';
 import { useAddUserMutation,useGetAllUserQuery,useDeletUserMutation} from '../../redux/Services/AuthApi';
 import {showErrorAlert,showSuccessAlert} from '../../util/SweetalertHelper'
 
 function OperatorInformation() {
-  const { t } = useTranslation();
   const [AddUserData] = useAddUserMutation()
   const [DeleteUserData] = useDeletUserMutation()
   const {data:AllUser} = useGetAllUserQuery()
 
-console.log('AllUser',AllUser)
   const validationSchema = Yup.object({
-    OperatorName: Yup.string().required(t('operatorNameRequired')),
-    Password: Yup.string().required(t('passwordRequired')).min(3,'Password must be above to 3'),
-    Role: Yup.string().required(t('roleRequired')),
+    OperatorName: Yup.string().required('User Name is Required'),
+    Password: Yup.string().required('Password is Required').min(3,'Password must be above to 3'),
+    Role: Yup.string().required('Role is Required'),
     ContactNo: Yup.string()
-      .required(t('contactNumberRequired'))
-      .matches(/^[0-9]+$/, t('contactNumberInvalid')),
+      .required('Contact No is Required')
+      .matches(/^[0-9]+$/, 'Contact NO is Invalid'),
     Email: Yup.string()
       .required('Email Required').email('Please enter a valid email address')
   });
 
   const handleSubmit = async(values, { resetForm }) => {
-    console.log(values)
     try {
       const res = await AddUserData(values).unwrap()
       if(res.success){
@@ -73,7 +69,7 @@ console.log('AllUser',AllUser)
             <Form className="row g-3">
               <div className="col-md-6">
                 <label htmlFor="operatorName" className="form-label">
-                  {t("operatorName")}
+                  User Name
                 </label>
                 <Field
                   name="OperatorName"
@@ -105,7 +101,7 @@ console.log('AllUser',AllUser)
               </div>
               <div className="col-md-6">
                 <label htmlFor="Password" className="form-label">
-                  {t("password")}
+                  Password
                 </label>
                 <Field
                   name="Password"
@@ -121,7 +117,7 @@ console.log('AllUser',AllUser)
               </div>
               <div className="col-md-6">
                 <label htmlFor="ContactNo" className="form-label">
-                  {t("contactNumber")}
+                  Contact Number
                 </label>
                 <Field
                   name="ContactNo"
@@ -137,7 +133,7 @@ console.log('AllUser',AllUser)
               </div>
               <div className="col-md-6">
                 <label htmlFor="Role" className="form-label">
-                  {t("role")}
+                  Role
                 </label>
                 <Field
                   name="Role"
@@ -180,7 +176,7 @@ console.log('AllUser',AllUser)
               <th>Name</th>
               <th>Email</th>
               <th>Contact</th>
-              <th>{t("role")}</th>
+              <th>Role</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -188,7 +184,7 @@ console.log('AllUser',AllUser)
             {AllUser?.length == 0 ? (
               <tr>
                 <td colSpan={5}>
-                  <p className="text-danger text-center">Data Not Found</p>
+                  <p className="text-danger text-center">No data available in the table</p>
                 </td>
               </tr>
             ) : (

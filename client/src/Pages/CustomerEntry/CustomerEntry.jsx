@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import Layout from "../Layout/Layout";
 import * as Yup from "yup";
 import { Formik, Field, Form, ErrorMessage } from "formik";
-import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useAddCustomerMutation, useDeleteCustomerMutation, useGetCustomerQuery } from "../../redux/Services/AddCustomerApi";
 import {showSuccessAlert,showErrorAlert} from '../../util/SweetalertHelper'
 function CustomerEntry() {
-  const { t } = useTranslation();
+
   const [addCustomer] = useAddCustomerMutation()
   const {data:customerdata} = useGetCustomerQuery()
   const [deletecustomer] = useDeleteCustomerMutation()
@@ -37,13 +36,14 @@ function CustomerEntry() {
   setCurrentPage(pagenumber)
  }
 
-  const CustomerSchema = Yup.object({
-    CustomerName: Yup.string().required(t('customerNameRequired')),
-    PhoneNo: Yup.string().required(t('phoneNoRequired')),
-    CnicNo: Yup.string().required(t('cnicNoRequired')),
-    Profession: Yup.string().required(t('professionRequired')),
-    Address: Yup.string().required(t('addressRequired')),
-  });
+ const CustomerSchema = Yup.object({
+  CustomerName: Yup.string().required("Customer Name is required"),
+  PhoneNo: Yup.string().required("Phone Number is required"),
+  CnicNo: Yup.string().required("CNIC Number is required"),
+  Profession: Yup.string().required("Profession is required"),
+  Address: Yup.string().required("Address is required"),
+});
+
 
   const handleSearch = (value) => {
     if(!value){
@@ -84,23 +84,23 @@ function CustomerEntry() {
   return (
     <Layout>
       <h5 className="text-bold py-2 mt-3 text-center">
-        {t("customerAndMeasurementEntry")}
+         Add Customer
       </h5>
       <div className="container">
         <div className="row mt-4 py-2">
-          <div className="col-md-2 mb-2 mb-md-0">
+          <div className="col-md-3 mb-2 mb-md-0">
             <button
               type="button"
-              className="btn btn-success fw-bold"
+              className="btn btn-success fw-bold btn-sm"
               data-bs-toggle="modal"
               data-bs-target="#staticBackdrop"
             >
-              <i className="fa-solid fa-plus"></i> {t("newCustomer")}
+              <i className="fa-solid fa-plus"></i> New Customer
             </button>
           </div>
-          <div className="col-md-3 col-6 d-flex gap-4  mt-2 mt-md-0 mb-md-0">
+          <div className="col-md-3 col-12 d-flex gap-4  mt-2 mt-md-0 mb-md-0">
             <label htmlFor="Search" className="fw-bold">
-              {t("search")}
+              Search
             </label>
             <input
               type="text"
@@ -108,7 +108,7 @@ function CustomerEntry() {
               onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
-          <div className="col-md-2 col-6">
+          <div className="col-md-4 col-12 mt-3 mt-md-0" >
             <select name="rowpage" className='form-control w-25 bg-danger text-white' id="rowpage" onChange={(e)=>setRowPerPage( parseInt(e.target.value)) }>
               <option value="10">10</option>
               <option value="15">15</option>
@@ -123,14 +123,14 @@ function CustomerEntry() {
               <table className="table table-striped">
                 <thead>
                   <tr>
-                    <th>{t("sNo")}</th>
-                    <th>{t("customerName")}</th>
-                    <th>{t("phoneNo")}</th>
-                    <th>{t("cnic")}</th>
-                    <th>{t("address")}</th>
-                    <th>{t("profession")}</th>
+                    <th>S.NO</th>
+                    <th>CustomerName</th>
+                    <th>Phone No</th>
+                    <th>CNIC</th>
+                    <th>Address</th>
+                    <th>Profession</th>
                     <th>RemainingDues</th>
-                    <th>{t("action")}</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -221,36 +221,39 @@ function CustomerEntry() {
               </table>
             </div>
           </div>
+          {CurrentItems.length > 0? (
+                      <div className="row my-4">
+                      <div className="col-md-12 d-flex justify-content-center">
+                        <button
+                          className="btn  btn-sm btn-danger me-1 fw-bold"
+                          onClick={handlePrev}
+                          disabled={currentPage === 1}
+                        >
+                          Prev
+                        </button>
+                        {Array.from({ length: totalPage }, (_, ind) => (
+                          <button
+                            className={`btn btn-sm  mx-2 ${
+                              currentPage === ind + 1 ? "btn-danger" : "btn-primary"
+                            }`}
+                            onClick={()=>handlePage(ind+1)}
+                            key={ind + 1}
+                          >
+                            {ind + 1}
+                          </button>
+                        ))}
+                        <button
+                          className="btn  btn-sm btn-danger ms-1 fw-bold"
+                          onClick={handleNext}
+                          disabled={currentPage === totalPage}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+          ):null}
 
-          <div className="row my-4">
-            <div className="col-md-12 d-flex justify-content-center">
-              <button
-                className="btn  btn-sm btn-danger me-1 fw-bold"
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-              >
-                Prev
-              </button>
-              {Array.from({ length: totalPage }, (_, ind) => (
-                <button
-                  className={`btn btn-sm  mx-2 ${
-                    currentPage === ind + 1 ? "btn-danger" : "btn-primary"
-                  }`}
-                  onClick={()=>handlePage(ind+1)}
-                  key={ind + 1}
-                >
-                  {ind + 1}
-                </button>
-              ))}
-              <button
-                className="btn  btn-sm btn-danger ms-1 fw-bold"
-                onClick={handleNext}
-                disabled={currentPage === totalPage}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -267,13 +270,13 @@ function CustomerEntry() {
           <div className="modal-content px-2">
             <div className="modal-header">
               <h5 className="modal-title" id="staticBackdropLabel">
-                {t("addNewCustomer")}
+                Add New Customer
               </h5>
               <button
                 type="button"
                 className="btn-close"
                 data-bs-dismiss="modal"
-                aria-label={t("close")}
+                aria-label={close}
               ></button>
             </div>
             <div className="modal-body py-4">
@@ -295,7 +298,7 @@ function CustomerEntry() {
                         htmlFor="CustomerName"
                         className="form-label fw-bold"
                       >
-                        {t("customerName")}
+                        Customer Name
                       </label>
                       <Field
                         name="CustomerName"
@@ -311,7 +314,7 @@ function CustomerEntry() {
                     </div>
                     <div className="col-md-6">
                       <label htmlFor="PhoneNo" className="form-label fw-bold">
-                        {t("phoneNo")}
+                       Phone No
                       </label>
                       <Field
                         name="PhoneNo"
@@ -327,7 +330,7 @@ function CustomerEntry() {
                     </div>
                     <div className="col-md-6">
                       <label htmlFor="CnicNo" className="form-label fw-bold">
-                        {t("cnic")}
+                        CNIC
                       </label>
                       <Field
                         name="CnicNo"
@@ -343,7 +346,7 @@ function CustomerEntry() {
                     </div>
                     <div className="col-md-6">
                       <label htmlFor="Address" className="form-label fw-bold">
-                        {t("address")}
+                      Address
                       </label>
                       <Field
                         name="Address"
@@ -362,7 +365,7 @@ function CustomerEntry() {
                         htmlFor="Profession"
                         className="form-label fw-bold"
                       >
-                        {t("profession")}
+                        Profession
                       </label>
                       <Field
                         name="Profession"
@@ -378,7 +381,7 @@ function CustomerEntry() {
                     </div>
                     <div className="col-md-12 text-center">
                       <button type="submit" className="btn btn-success">
-                        {t("save")}
+                        Save
                       </button>
                     </div>
                   </Form>
@@ -391,7 +394,7 @@ function CustomerEntry() {
                 className="btn btn-secondary"
                 data-bs-dismiss="modal"
               >
-                {t("close")}
+                Close
               </button>
             </div>
           </div>

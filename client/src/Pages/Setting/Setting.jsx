@@ -4,7 +4,6 @@ import Layout from '../Layout/Layout';
 import { useTranslation } from 'react-i18next';
 
 function Setting() {
-  const { t } = useTranslation();
   const [isActive, setIsActive] = useState(1);
 
   const handleChange = (val) => {
@@ -17,28 +16,28 @@ function Setting() {
         <div className="container mb-5" >
           <div className="row bg-white py-3 mb-2">
             <div className="col-12">
-              <h5 className="text-center" >{t('appSetting')}</h5>
+              <h5 className="text-center" >App Setting</h5>
             </div>
           </div>
           <div className="row bg-white d-flex py-2">
-            <div className="col-md-2">
+            <div className="col-md-3">
               <Link
                 to={'/setting/appsetting'}
                 type="button"
                 className={isActive === 1 ? 'isactive btn outline-0 border-0' : 'btn outline-0 border-0'}
                 onClick={() => handleChange(1)}
               >
-                {t('shopInformation')}
+                Shop Information
               </Link>
             </div>
-            <div className="col-md-2">
+            <div className="col-md-3">
               <Link
                 to={'/setting/operatorinformation'}
                 type="button"
                 className={isActive === 2 ? 'isactive btn outline-0 border-0' : 'btn outline-0 border-0'}
                 onClick={() => handleChange(2)}
               >
-                {t('operatorInformation')}
+                User Information
               </Link>
             </div>
           </div>
